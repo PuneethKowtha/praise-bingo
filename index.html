@@ -571,7 +571,7 @@
   <div class="toast-error" id="toastError"></div>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1/dist/canvas-confetti.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
     // ========================
@@ -583,6 +583,10 @@
     let markedCells = new Set();
     let bingoAchieved = false;
     let formValues = {};
+
+    function confetti(opts) {
+      try { if (typeof canvasConfetti === 'function') canvasConfetti(opts); } catch (e) {}
+    }
 
     // ========================
     // PARTICLES — interactive floating shapes
@@ -726,7 +730,7 @@
       formValues = { name, occasion, relationship, keywords, tone };
       updateSteps(2);
       // Tiny celebration on advancing
-      canvasConfetti({ particleCount: 20, spread: 40, origin: { y: 0.6 }, colors: ['#C9A96E', '#7C2D4A'], startVelocity: 25 });
+      confetti({ particleCount: 20, spread: 40, origin: { y: 0.6 }, colors: ['#C9A96E', '#7C2D4A'], startVelocity: 25 });
     }
 
     // ========================
@@ -743,7 +747,7 @@
       const amounts = { basic: '₹99', premium: '₹199', deluxe: '₹299' };
       btn.textContent = 'Pay ' + amounts[tier];
       // Little pop of confetti on selection
-      canvasConfetti({ particleCount: 15, spread: 30, origin: { y: 0.7 }, colors: ['#C9A96E', '#7C2D4A', '#C97B84'], startVelocity: 20 });
+      confetti({ particleCount: 15, spread: 30, origin: { y: 0.7 }, colors: ['#C9A96E', '#7C2D4A', '#C97B84'], startVelocity: 20 });
     }
 
     // ========================
@@ -838,7 +842,7 @@
         document.getElementById('tierSelectionError').style.display = 'block';
         return;
       }
-      canvasConfetti({ particleCount: 25, spread: 40, origin: { y: 0.7 }, colors: ['#C9A96E', '#7C2D4A'], startVelocity: 30 });
+      confetti({ particleCount: 25, spread: 40, origin: { y: 0.7 }, colors: ['#C9A96E', '#7C2D4A'], startVelocity: 30 });
       generateCard();
     }
 
@@ -954,9 +958,10 @@
       bar.style.width = '100%';
       setTimeout(() => {
         document.getElementById('loadingSection').classList.remove('active');
+        document.getElementById('cardSection').classList.add('active');
         renderCard();
-        canvasConfetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#7C2D4A', '#C9A96E', '#C97B84'] });
-        setTimeout(() => canvasConfetti({ particleCount: 40, spread: 50, origin: { y: 0.5 }, colors: ['#C9A96E'] }), 200);
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#7C2D4A', '#C9A96E', '#C97B84'] });
+        setTimeout(() => confetti({ particleCount: 40, spread: 50, origin: { y: 0.5 }, colors: ['#C9A96E'] }), 200);
         const enc = btoa(encodeURIComponent(JSON.stringify(cardData)));
         window.history.replaceState(null, '', '#' + enc);
       }, 400);
@@ -1059,10 +1064,10 @@
         document.getElementById('bingoMessage').textContent = 'BINGO! (' + wins.length + ' line' + (wins.length > 1 ? 's' : '') + ')';
 
         if (cardData.features.confetti) {
-          canvasConfetti({ particleCount: 120, spread: 80, origin: { y: 0.5 }, colors: ['#7C2D4A', '#C9A96E', '#C97B84', '#D4C5BC'] });
-          setTimeout(() => canvasConfetti({ particleCount: 80, spread: 60, origin: { y: 0.4 }, colors: ['#C9A96E', '#7C2D4A'] }), 300);
-          setTimeout(() => canvasConfetti({ particleCount: 60, spread: 90, origin: { y: 0.6 }, colors: ['#C97B84', '#C9A96E'] }), 600);
-          setTimeout(() => canvasConfetti({ particleCount: 40, spread: 120, origin: { y: 0.3 }, colors: ['#7C2D4A', '#D4C5BC'] }), 900);
+          confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 }, colors: ['#7C2D4A', '#C9A96E', '#C97B84', '#D4C5BC'] });
+          setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.4 }, colors: ['#C9A96E', '#7C2D4A'] }), 300);
+          setTimeout(() => confetti({ particleCount: 60, spread: 90, origin: { y: 0.6 }, colors: ['#C97B84', '#C9A96E'] }), 600);
+          setTimeout(() => confetti({ particleCount: 40, spread: 120, origin: { y: 0.3 }, colors: ['#7C2D4A', '#D4C5BC'] }), 900);
         }
       }
     }
