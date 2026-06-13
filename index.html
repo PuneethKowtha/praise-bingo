@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Praise Bingo — The most fun way to say "I love you"</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e8eaf6 100%);
+      min-height: 100vh;
+    }
+    .fredoka { font-family: 'Fredoka One', cursive; }
+    .step-indicator { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; }
+    .step-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; transition: all 0.3s; }
+    .step-dot.active { background: #ec4899; color: white; transform: scale(1.1); box-shadow: 0 4px 12px rgba(236,72,153,0.4); }
+    .step-dot.done { background: #10b981; color: white; }
+    .step-dot.pending { background: #e5e7eb; color: #9ca3af; }
+    .step-line { width: 40px; height: 2px; align-self: center; background: #e5e7eb; }
+    .step-line.done { background: #10b981; }
+    .section { display: none; animation: fadeIn 0.4s ease; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    .tier-card {
+      cursor: pointer; border: 2px solid #e5e7eb; border-radius: 16px; padding: 20px;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .tier-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+    .tier-card.selected { border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236,72,153,0.2); }
+    .tier-card .badge { position: absolute; top: 12px; right: 12px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .bingo-cell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      padding: 6px; font-size: 11px; font-weight: 600; text-align: center;
+      border-radius: 10px; cursor: pointer; transition: all 0.2s;
+      background: white; border: 2px solid #e5e7eb; color: #374151;
+      user-select: none; word-break: break-word;
+    }
+    .bingo-cell:hover { border-color: #f9a8d4; transform: scale(1.03); }
+    .bingo-cell.marked { background: #ec4899; color: white; border-color: #db2777; }
+    .bingo-cell.free { background: #fef3c7; border-color: #f59e0b; color: #92400e; cursor: default; }
+    .bingo-cell.free:hover { transform: none; }
+    .bingo-cell.bingo-highlight { animation: bounceIn 0.5s; background: #10b981; color: white; border-color: #059669; }
+    @media (min-width: 640px) {
+      .bingo-cell { font-size: 13px; padding: 10px; }
+    }
+    @media (min-width: 768px) {
+      .bingo-cell { font-size: 14px; padding: 12px; }
+    }
+    .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #ec4899; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .glass { background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 20px; }
+    .confetti-piece { position: fixed; pointer-events: none; z-index: 9999; }
+    .feature-check { color: #10b981; margin-right: 6px; }
+    .feature-cross { color: #d1d5db; margin-right: 6px; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; z-index: 1000; animation: fadeIn 0.3s; }
+  </style>
+</head>
+<body>
+  <div class="max-w-4xl mx-auto px-4 py-6 md:py-10">
+    <header class="text-center mb-8">
+      <h1 class="fredoka text-4xl md:text-5xl text-pink-600">Praise Bingo</h1>
+      <p class="text-gray-500 mt-2 text-lg">The most fun way to say "I love you"</p>
+    </header>
+
+    <div class="step-indicator" id="stepIndicator">
+      <div class="step-dot active" id="step1">1</div>
+      <div class="step-line" id="line1"></div>
+      <div class="step-dot pending" id="step2">2</div>
+      <div class="step-line" id="line2"></div>
+      <div class="step-dot pending" id="step3">3</div>
+    </div>
+
+    <div class="glass p-6 md:p-8 shadow-xl">
+      <div class="section active" id="formSection">
+        <h2 class="text-2xl font-bold text-gray-800 mb-1">Create Your Card</h2>
+        <p class="text-gray-500 mb-6">Tell us about them — we'll craft the perfect compliments.</p>
+        <form id="bingoForm" class="space-y-4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Recipient's Name *</label>
+              <input type="text" name="name" required placeholder="e.g. Priya"
+                class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Occasion *</label>
+              <select name="occasion" required
+                class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition bg-white">
+                <option value="">Select occasion</option>
+                <option value="Birthday">Birthday</option>
+                <option value="Anniversary">Anniversary</option>
+                <option value="Graduation">Graduation</option>
+                <option value="Valentine's Day">Valentine's Day</option>
+                <option value="Just Because">Just Because</option>
+                <option value="Sorry">Sorry / Apology</option>
+                <option value="Friendship Day">Friendship Day</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Relationship *</label>
+              <select name="relationship" required
+                class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition bg-white">
+                <option value="">Select relationship</option>
+                <option value="Partner">Partner / Spouse</option>
+                <option value="Boyfriend">Boyfriend</option>
+                <option value="Girlfriend">Girlfriend</option>
+                <option value="Best Friend">Best Friend</option>
+                <option value="Friend">Friend</option>
+                <option value="Parent">Parent</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Child">Child</option>
+                <option value="Colleague">Colleague</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Tone *</label>
+              <select name="tone" required
+                class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition bg-white">
+                <option value="Heartfelt">Heartfelt</option>
+                <option value="Funny">Funny & Playful</option>
+                <option value="Poetic">Poetic</option>
+                <option value="Cheeky">Cheeky & Flirty</option>
+                <option value="Sentimental">Sentimental</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Their interests / qualities</label>
+            <textarea name="keywords" rows="2" placeholder="e.g. loves coffee, dog mom, great cook, always makes me laugh"
+              class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition"></textarea>
+          </div>
+          <button type="submit"
+            class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 px-6 rounded-xl text-lg hover:from-pink-600 hover:to-purple-600 transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
+            Generate My Bingo Card →
+          </button>
+        </form>
+      </div>
+
+      <div class="section" id="paymentSection">
+        <h2 class="text-2xl font-bold text-gray-800 mb-1">Choose Your Tier</h2>
+        <p class="text-gray-500 mb-6">Pick the experience that matches your love. 💝</p>
+        <div class="grid md:grid-cols-3 gap-4 mb-6">
+          <div class="tier-card" data-tier="basic" onclick="selectTier('basic')">
+            <div class="badge" style="display:none" id="badge-basic">Popular</div>
+            <h3 class="text-xl font-bold text-gray-800">Basic</h3>
+            <p class="text-3xl font-bold text-pink-600 my-2">₹99</p>
+            <ul class="text-sm text-gray-600 space-y-2">
+              <li>✓ 25 personalized compliments</li>
+              <li>✓ Interactive bingo card</li>
+              <li>✓ Shareable link</li>
+              <li class="text-gray-300"><span class="feature-cross">✗</span> Custom theme</li>
+              <li class="text-gray-300"><span class="feature-cross">✗</span> Confetti animation</li>
+              <li class="text-gray-300"><span class="feature-cross">✗</span> HD download</li>
+            </ul>
+          </div>
+          <div class="tier-card" data-tier="premium" onclick="selectTier('premium')">
+            <div class="badge">Most Popular</div>
+            <h3 class="text-xl font-bold text-gray-800">Premium</h3>
+            <p class="text-3xl font-bold text-purple-600 my-2">₹199</p>
+            <ul class="text-sm text-gray-600 space-y-2">
+              <li>✓ Everything in Basic</li>
+              <li>✓ Custom color theme</li>
+              <li>✓ Confetti on BINGO!</li>
+              <li>✓ Personalized 4-line poem</li>
+              <li class="text-gray-300"><span class="feature-cross">✗</span> HD download</li>
+            </ul>
+          </div>
+          <div class="tier-card" data-tier="deluxe" onclick="selectTier('deluxe')">
+            <div class="badge">Best Value</div>
+            <h3 class="text-xl font-bold text-gray-800">Deluxe</h3>
+            <p class="text-3xl font-bold text-amber-600 my-2">₹299</p>
+            <ul class="text-sm text-gray-600 space-y-2">
+              <li>✓ Everything in Premium</li>
+              <li>✓ HD downloadable image</li>
+              <li>✓ "Memory Lane" story</li>
+              <li>✓ Bonus: printable frame</li>
+            </ul>
+          </div>
+        </div>
+        <div id="tierSelectionError" class="text-red-500 text-sm text-center mb-3 hidden">Please select a tier</div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button onclick="handlePayment()"
+            class="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 px-6 rounded-xl text-lg hover:from-pink-600 hover:to-purple-600 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            id="payButton">
+            Pay with Razorpay
+          </button>
+          <button onclick="handleDemo()"
+            class="flex-1 bg-gray-100 text-gray-700 font-bold py-4 px-6 rounded-xl text-lg hover:bg-gray-200 transition border-2 border-gray-200"
+            id="demoButton">
+            Demo Mode (Skip Payment)
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 text-center mt-3">Demo mode for testing — swap Razorpay key for real payments</p>
+      </div>
+
+      <div class="section" id="loadingSection">
+        <div class="text-center py-12">
+          <div class="spinner mx-auto mb-4"></div>
+          <h3 class="text-xl font-bold text-gray-800">Crafting your card...</h3>
+          <p class="text-gray-500">Our AI is writing the perfect compliments ✨</p>
+        </div>
+      </div>
+
+      <div class="section" id="cardSection">
+        <div id="cardContent">
+          <div class="text-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800" id="cardTitle">Your Bingo Card</h2>
+            <p class="text-gray-500" id="cardSubtitle">Click cells to mark them. Get 5 in a row for BINGO!</p>
+          </div>
+          <div class="grid grid-cols-5 gap-2 max-w-lg mx-auto mb-6" id="bingoGrid"></div>
+          <div id="bingoMessage" class="text-center text-2xl font-bold text-green-600 mb-4 hidden">🎉 BINGO! 🎉</div>
+          <div id="poemSection" class="text-center mb-4 hidden">
+            <div class="bg-pink-50 rounded-xl p-4 max-w-md mx-auto">
+              <p class="font-semibold text-gray-700 mb-1">💌 A little poem for you</p>
+              <p id="poemText" class="text-gray-600 italic"></p>
+            </div>
+          </div>
+          <div id="memorySection" class="text-center mb-4 hidden">
+            <div class="bg-amber-50 rounded-xl p-4 max-w-md mx-auto">
+              <p class="font-semibold text-gray-700 mb-1">📖 Memory Lane</p>
+              <p id="memoryText" class="text-gray-600"></p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-3 justify-center mt-4">
+            <button onclick="shareCard()" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-600 transition shadow">
+              📋 Share Link
+            </button>
+            <button onclick="downloadCard()" class="bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition shadow" id="downloadBtn">
+              📥 Download Image
+            </button>
+            <button onclick="resetAll()" class="bg-gray-100 text-gray-700 font-bold py-3 px-6 rounded-xl hover:bg-gray-200 transition border-2 border-gray-200">
+              Create Another →
+            </button>
+          </div>
+          <p id="shareHint" class="text-center text-sm text-gray-400 mt-3 hidden">Link copied! Share it with them 💕</p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="text-center mt-8 text-gray-400 text-sm">
+      Made with ❤️ for the Hackathon
+    </footer>
+  </div>
+
+  <script>
+    // === CONFIG ===
+    // REPLACE_RAZORPAY_KEY — swap with your live Razorpay Key ID before going live
+    const RAZORPAY_KEY_ID = 'rzp_test_XXXXXXXXXXXXXXXX';
+
+    // === STATE ===
+    let currentStep = 1;
+    let selectedTier = null;
+    let cardData = null;
+    let markedCells = new Set();
+    let bingoAchieved = false;
+    let formValues = {};
+
+    // === STEP INDICATOR ===
+    function updateSteps(step) {
+      currentStep = step;
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById('step' + i);
+        dot.className = 'step-dot ' + (i < step ? 'done' : i === step ? 'active' : 'pending');
+      }
+      document.getElementById('line1').className = 'step-line ' + (step > 1 ? 'done' : '');
+      document.getElementById('line2').className = 'step-line ' + (step > 2 ? 'done' : '');
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      if (step === 1) document.getElementById('formSection').classList.add('active');
+      else if (step === 2) document.getElementById('paymentSection').classList.add('active');
+      else if (step === 3) document.getElementById('cardSection').classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // === FORM SUBMISSION ===
+    document.getElementById('bingoForm').onsubmit = function (e) {
+      e.preventDefault();
+      const fd = new FormData(this);
+      formValues = {
+        name: fd.get('name').trim(),
+        occasion: fd.get('occasion'),
+        relationship: fd.get('relationship'),
+        keywords: fd.get('keywords').trim(),
+        tone: fd.get('tone')
+      };
+      updateSteps(2);
+    };
+
+    // === TIER SELECTION ===
+    function selectTier(tier) {
+      selectedTier = tier;
+      document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`.tier-card[data-tier="${tier}"]`).classList.add('selected');
+      document.getElementById('tierSelectionError').classList.add('hidden');
+      document.getElementById('payButton').disabled = false;
+
+      if (tier === 'basic') {
+        document.getElementById('payButton').textContent = 'Pay ₹99';
+      } else if (tier === 'premium') {
+        document.getElementById('payButton').textContent = 'Pay ₹199';
+      } else {
+        document.getElementById('payButton').textContent = 'Pay ₹299';
+      }
+    }
+
+    // === PAYMENT (Placeholder) ===
+    function handlePayment() {
+      if (!selectedTier) {
+        document.getElementById('tierSelectionError').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('payButton').disabled = true;
+      document.getElementById('demoButton').disabled = true;
+
+      const amounts = { basic: 99, premium: 199, deluxe: 299 };
+      const amount = amounts[selectedTier];
+
+      // If using test key, Razorpay test mode will work
+      if (RAZORPAY_KEY_ID !== 'rzp_test_XXXXXXXXXXXXXXXX') {
+        const options = {
+          key: RAZORPAY_KEY_ID,
+          amount: amount * 100,
+          currency: 'INR',
+          name: 'Praise Bingo',
+          description: `${selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} Tier`,
+          handler: function () {
+            generateCard();
+          },
+          prefill: { name: formValues.name || '' },
+          theme: { color: '#ec4899' }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        alert('⚠️ Razorpay key not configured.\n\nClick OK to continue in Demo Mode.');
+        generateCard();
+      }
+    }
+
+    function handleDemo() {
+      if (!selectedTier) {
+        document.getElementById('tierSelectionError').classList.remove('hidden');
+        return;
+      }
+      generateCard();
+    }
+
+    // === GENERATE CARD ===
+    async function generateCard() {
+      updateSteps(3);
+      document.getElementById('loadingSection').classList.add('active');
+      document.getElementById('cardSection').classList.remove('active');
+      document.getElementById('bingoMessage').classList.add('hidden');
+      bingoAchieved = false;
+      markedCells = new Set();
+
+      const tierFeatures = {
+        basic: { poem: false, memory: false, confetti: false, download: false, customTheme: false },
+        premium: { poem: true, memory: false, confetti: true, download: false, customTheme: true },
+        deluxe: { poem: true, memory: true, confetti: true, download: true, customTheme: true }
+      };
+      const features = tierFeatures[selectedTier] || tierFeatures.basic;
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formValues.name,
+            occasion: formValues.occasion,
+            relationship: formValues.relationship,
+            keywords: formValues.keywords,
+            tone: formValues.tone,
+            tier: selectedTier
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'API error');
+        }
+
+        cardData = {
+          name: formValues.name,
+          cells: data.cells,
+          poem: data.poem || null,
+          memory: data.memory || null,
+          tier: selectedTier,
+          features: features,
+          occasion: formValues.occasion,
+          tone: formValues.tone
+        };
+
+        document.getElementById('loadingSection').classList.remove('active');
+        renderCard();
+
+        const encoded = btoa(encodeURIComponent(JSON.stringify(cardData)));
+        window.history.replaceState(null, '', '#' + encoded);
+
+      } catch (err) {
+        document.getElementById('loadingSection').classList.remove('active');
+        document.getElementById('cardSection').classList.remove('active');
+        const paySection = document.getElementById('paymentSection');
+        paySection.classList.add('active');
+        paySection.innerHTML = `
+          <div class="text-center py-8">
+            <div class="text-5xl mb-4">😅</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Oops! Something went wrong</h2>
+            <p class="text-gray-500 mb-4">${err.message}</p>
+            <button onclick="location.reload()" class="bg-pink-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-pink-600 transition">
+              Try Again
+            </button>
+          </div>
+        `;
+        updateSteps(2);
+      }
+    }
+
+    // === RENDER BINGO CARD ===
+    function renderCard() {
+      if (!cardData) return;
+
+      const themeColors = {
+        basic: { bg: 'white' },
+        premium: ['#fce4ec', '#f3e5f5', '#e8eaf6', '#fff3e0', '#e0f7fa'],
+        deluxe: ['#fce4ec', '#f3e5f5', '#e8eaf6', '#fff3e0', '#e0f7fa']
+      };
+
+      document.getElementById('cardTitle').textContent = `${cardData.name}'s Bingo Card`;
+      document.getElementById('cardSubtitle').textContent =
+        `Click cells to mark them. Get 5 in a row for BINGO! 🎯`;
+
+      const grid = document.getElementById('bingoGrid');
+      grid.innerHTML = '';
+
+      cardData.cells.forEach((cell, i) => {
+        const div = document.createElement('div');
+        div.className = 'bingo-cell';
+        if (i === 12) {
+          div.classList.add('free');
+          div.textContent = `⭐ FREE SPACE ⭐`;
+        } else {
+          div.textContent = cell;
+          div.dataset.index = i;
+          div.onclick = function () { toggleCell(i); };
+        }
+        grid.appendChild(div);
+      });
+
+      if (cardData.features.customTheme) {
+        document.getElementById('cardContent').querySelector('.glass') ||
+          document.getElementById('cardContent').style.background = 'rgba(255,255,255,0.8)';
+      }
+
+      if (cardData.features.poem && cardData.poem) {
+        document.getElementById('poemSection').classList.remove('hidden');
+        document.getElementById('poemText').textContent = cardData.poem;
+      } else {
+        document.getElementById('poemSection').classList.add('hidden');
+      }
+
+      if (cardData.features.memory && cardData.memory) {
+        document.getElementById('memorySection').classList.remove('hidden');
+        document.getElementById('memoryText').textContent = cardData.memory;
+      } else {
+        document.getElementById('memorySection').classList.add('hidden');
+      }
+
+      if (cardData.features.download) {
+        document.getElementById('downloadBtn').classList.remove('hidden');
+      } else {
+        document.getElementById('downloadBtn').classList.add('hidden');
+      }
+    }
+
+    // === TOGGLE CELL ===
+    function toggleCell(index) {
+      if (bingoAchieved) return;
+      const cells = document.querySelectorAll('.bingo-cell');
+      const cell = cells[index];
+      if (!cell || cell.classList.contains('free')) return;
+
+      if (markedCells.has(index)) {
+        markedCells.delete(index);
+        cell.classList.remove('marked');
+      } else {
+        markedCells.add(index);
+        cell.classList.add('marked');
+        checkBingo();
+      }
+    }
+
+    // === BINGO DETECTION ===
+    function checkBingo() {
+      const size = 5;
+      const marked = markedCells;
+
+      function isMarked(r, c) {
+        if (r === 2 && c === 2) return true;
+        const idx = r * size + c;
+        return marked.has(idx);
+      }
+
+      const winLines = [];
+
+      for (let r = 0; r < size; r++) {
+        if (Array.from({ length: size }, (_, c) => isMarked(r, c)).every(Boolean)) {
+          winLines.push(Array.from({ length: size }, (_, c) => r * size + c));
+        }
+      }
+
+      for (let c = 0; c < size; c++) {
+        if (Array.from({ length: size }, (_, r) => isMarked(r, c)).every(Boolean)) {
+          winLines.push(Array.from({ length: size }, (_, r) => r * size + c));
+        }
+      }
+
+      if (Array.from({ length: size }, (_, i) => isMarked(i, i)).every(Boolean)) {
+        winLines.push(Array.from({ length: size }, (_, i) => i * size + i));
+      }
+      if (Array.from({ length: size }, (_, i) => isMarked(i, size - 1 - i)).every(Boolean)) {
+        winLines.push(Array.from({ length: size }, (_, i) => i * size + (size - 1 - i)));
+      }
+
+      if (winLines.length > 0) {
+        bingoAchieved = true;
+        const allCells = document.querySelectorAll('.bingo-cell');
+        const highlighted = new Set();
+        winLines.forEach(line => line.forEach(idx => highlighted.add(idx)));
+
+        highlighted.forEach(idx => {
+          if (allCells[idx]) allCells[idx].classList.add('bingo-highlight');
+        });
+
+        document.getElementById('bingoMessage').classList.remove('hidden');
+        document.getElementById('bingoMessage').textContent = `🎉 BINGO! (${winLines.length} line${winLines.length > 1 ? 's' : ''}) 🎉`;
+
+        if (cardData.features.confetti) {
+          launchConfetti();
+          setTimeout(() => launchConfetti(), 500);
+          setTimeout(() => launchConfetti(), 1000);
+        }
+      }
+    }
+
+    // === CONFETTI ===
+    function launchConfetti() {
+      canvasConfetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ec4899', '#a855f7', '#f59e0b', '#10b981', '#3b82f6']
+      });
+    }
+
+    // === SHARE ===
+    function shareCard() {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        const hint = document.getElementById('shareHint');
+        hint.classList.remove('hidden');
+        setTimeout(() => hint.classList.add('hidden'), 3000);
+      }).catch(() => {
+        const hint = document.getElementById('shareHint');
+        hint.textContent = 'Copy this URL: ' + url;
+        hint.classList.remove('hidden');
+      });
+    }
+
+    // === DOWNLOAD ===
+    function downloadCard() {
+      if (!cardData.features.download) return;
+      const grid = document.getElementById('bingoGrid');
+      html2canvas(grid, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `${cardData.name}_BingoCard.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    // === RESET ===
+    function resetAll() {
+      cardData = null;
+      markedCells = new Set();
+      bingoAchieved = false;
+      selectedTier = null;
+      document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('bingoForm').reset();
+      document.getElementById('payButton').disabled = false;
+      document.getElementById('demoButton').disabled = false;
+      document.getElementById('payButton').textContent = 'Pay with Razorpay';
+      document.getElementById('bingoMessage').classList.add('hidden');
+      document.getElementById('poemSection').classList.add('hidden');
+      document.getElementById('memorySection').classList.add('hidden');
+      window.history.replaceState(null, '', window.location.pathname);
+      updateSteps(1);
+    }
+
+    // === LOAD FROM URL HASH (for recipient) ===
+    (function loadFromHash() {
+      if (window.location.hash.length > 1) {
+        try {
+          const raw = decodeURIComponent(atob(window.location.hash.slice(1)));
+          cardData = JSON.parse(raw);
+          selectedTier = cardData.tier || 'basic';
+          const tierFeatures = {
+            basic: { poem: false, memory: false, confetti: false, download: false, customTheme: false },
+            premium: { poem: true, memory: false, confetti: true, download: false, customTheme: true },
+            deluxe: { poem: true, memory: true, confetti: true, download: true, customTheme: true }
+          };
+          cardData.features = tierFeatures[cardData.tier] || tierFeatures.basic;
+          updateSteps(3);
+          renderCard();
+        } catch (e) {
+          console.log('No saved card found');
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
