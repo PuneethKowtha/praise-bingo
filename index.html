@@ -297,6 +297,103 @@
 
     .app-footer { text-align: center; margin-top: 20px; font-size: 0.7rem; color: var(--text-muted); opacity: 0.3; }
 
+    /* ======== UNBOXING ======== */
+    .unboxing-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: #0A0508; display: none;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .unboxing-overlay.open { display: flex; }
+    .unboxing-content { text-align: center; max-width: 400px; }
+    .unboxing-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 4px; }
+    .unboxing-from { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+    .unboxing-from span { color: var(--rose); }
+    .unboxing-name { font-size: 2.6rem; color: var(--gold); margin-bottom: 20px; }
+
+    .gift-box { position: relative; width: 120px; height: 100px; margin: 0 auto 20px; }
+    .gift-body {
+      width: 100%; height: 74px; background: linear-gradient(135deg, #C9A96E, #D4B06A);
+      border-radius: 4px; position: absolute; bottom: 0; left: 0;
+    }
+    .gift-body .gift-ribbon-h { height: 6px; background: var(--deep); position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); border-radius: 2px; }
+    .gift-body .gift-ribbon-v { width: 6px; background: var(--deep); position: absolute; left: 50%; top: 0; bottom: 0; transform: translateX(-50%); border-radius: 2px; }
+    .gift-lid {
+      width: calc(100% + 10px); height: 28px;
+      background: linear-gradient(135deg, #D4B06A, #E8C87A);
+      border-radius: 4px; position: absolute; top: 0; left: -5px; z-index: 2;
+      transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
+    }
+    .gift-lid .gift-ribbon-h { height: 6px; background: var(--deep); position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); border-radius: 2px; }
+    .gift-lid .gift-ribbon-v { width: 6px; background: var(--deep); position: absolute; left: 50%; top: 0; bottom: 0; transform: translateX(-50%); border-radius: 2px; }
+    .gift-box .gift-bow {
+      position: absolute; top: -6px; left: 50%; transform: translateX(-50%); z-index: 3;
+      width: 24px; height: 16px;
+    }
+    .gift-box .gift-bow::before, .gift-box .gift-bow::after {
+      content: ''; position: absolute; width: 14px; height: 14px;
+      background: var(--deep); border-radius: 50% 50% 0 50%;
+      top: 0;
+    }
+    .gift-box .gift-bow::before { left: 0; transform: rotate(-15deg); }
+    .gift-box .gift-bow::after { right: 0; transform: rotate(75deg); }
+    .gift-box.open .gift-lid { transform: translateY(-40px) rotate(-8deg); opacity: 0; }
+    .gift-box .gift-glow {
+      position: absolute; inset: -20px; border-radius: 60px;
+      background: radial-gradient(circle, rgba(232,200,122,0.15) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.6s ease;
+    }
+    .gift-box.open .gift-glow { opacity: 1; }
+
+    /* ======== KEEPSAKE ======== */
+    .keepsake-scroll {
+      max-height: 70vh; overflow-y: auto; padding: 4px 0;
+      scroll-behavior: smooth;
+    }
+    .keepsake-scroll::-webkit-scrollbar { width: 4px; }
+    .keepsake-scroll::-webkit-scrollbar-track { background: transparent; }
+    .keepsake-scroll::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 3px; }
+
+    .keepsake-header { text-align: center; margin-bottom: 16px; }
+    .keepsake-header h2 { font-size: 1.2rem; color: var(--gold); }
+    .keepsake-header p { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+
+    .keepsake-item {
+      padding: 12px 14px; border-radius: 10px;
+      border: 1.5px solid var(--surface); margin-bottom: 8px;
+      transition: all 0.4s cubic-bezier(0.22,1,0.36,1);
+      transform-origin: center center;
+    }
+    .keepsake-item .ki-cat { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 2px; }
+    .keepsake-item .ki-text { font-size: 0.85rem; color: var(--cream); line-height: 1.4; }
+    .keepsake-item.ki-heart .ki-cat { color: var(--cat1); }
+    .keepsake-item.ki-light .ki-cat { color: var(--cat2); }
+    .keepsake-item.ki-strength .ki-cat { color: var(--cat3); }
+    .keepsake-item.ki-joy .ki-cat { color: var(--cat4); }
+    .keepsake-item.ki-kind .ki-cat { color: var(--cat5); }
+
+    .keepsake-item.reading {
+      transform: scale(1.04);
+      border-color: var(--gold);
+      box-shadow: 0 0 20px rgba(232,200,122,0.15), 0 0 40px rgba(232,200,122,0.06);
+      background: rgba(232,200,122,0.04);
+    }
+    .keepsake-item.reading .ki-text { color: var(--cream); font-weight: 600; }
+
+    .keepsake-footer { text-align: center; margin-top: 20px; padding: 16px 0; border-top: 1px solid var(--surface); }
+    .keepsake-footer .ks-sign { font-family: 'DM Serif Display', serif; font-style: italic; color: var(--rose); font-size: 1rem; }
+    .keepsake-footer .ks-occasion { color: var(--text-muted); font-size: 0.7rem; margin-top: 4px; }
+
+    .keepsake-poem, .keepsake-memory {
+      margin: 12px 0; padding: 14px 16px; border-radius: 10px;
+      border: 1px solid var(--surface); background: rgba(255,255,255,0.02);
+    }
+    .keepsake-poem .kp-label, .keepsake-memory .km-label {
+      font-size: 0.6rem; font-weight: 700; color: var(--rose); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .keepsake-poem .kp-text, .keepsake-memory .km-text {
+      font-size: 0.85rem; color: var(--text-muted); font-style: italic; line-height: 1.5;
+    }
+
     /* ======== PAYMENT ======== */
     .payment-overlay {
       display: none; position: fixed; inset: 0; z-index: 9999;
@@ -610,14 +707,54 @@
           <div class="action-group">
             <button class="action-btn" onclick="shareCard()">Share Link</button>
             <button class="action-btn" id="downloadBtn" onclick="downloadCard()" style="display:none;">Download</button>
+            <button class="action-btn" id="keepsakeBtn" onclick="showKeepsake()" style="display:none;">View Your Keepsake</button>
             <button class="action-btn" onclick="resetAll()">New Card</button>
           </div>
           <div class="share-hint" id="shareHint">Link copied ✦</div>
+        </div>
+
+        <!-- KEEPSAKE -->
+        <div id="keepsakeSection" style="display:none;">
+          <div class="keepsake-header">
+            <h2 id="keepsakeTitle"></h2>
+            <p id="keepsakeSubtitle"></p>
+          </div>
+          <div class="keepsake-scroll" id="keepsakeScroll"></div>
+          <div class="keepsake-footer">
+            <div class="ks-sign" id="keepsakeSignature"></div>
+            <div class="ks-occasion" id="keepsakeOccasion"></div>
+          </div>
+          <div class="action-group" style="margin-top:12px;">
+            <button class="action-btn" onclick="downloadKeepsake()" id="keepsakeDownloadBtn" style="border-color:var(--gold);color:var(--gold);">Download Keepsake</button>
+            <button class="action-btn" onclick="showGameView()">Back to Game</button>
+          </div>
         </div>
       </div>
     </div>
 
     <footer class="app-footer">made with a little awe</footer>
+  </div>
+
+  <!-- UNBOXING OVERLAY -->
+  <div class="unboxing-overlay" id="unboxingOverlay">
+    <div class="unboxing-content">
+      <p class="unboxing-label">✦ you've received a praise bingo ✦</p>
+      <p class="unboxing-from">made just for you by <span id="unboxingGiver">Someone who loves you</span></p>
+      <h1 class="unboxing-name serif" id="unboxingName"></h1>
+      <div class="gift-box" id="giftBox">
+        <div class="gift-glow"></div>
+        <div class="gift-lid">
+          <div class="gift-bow"></div>
+          <div class="gift-ribbon-h"></div>
+          <div class="gift-ribbon-v"></div>
+        </div>
+        <div class="gift-body">
+          <div class="gift-ribbon-h"></div>
+          <div class="gift-ribbon-v"></div>
+        </div>
+      </div>
+      <button class="btn-primary" id="openGiftBtn" onclick="openGift()" style="width:auto;padding:12px 32px;display:inline-block;">Open Your Gift ✦</button>
+    </div>
   </div>
 
   <!-- PAYMENT PORTAL -->
@@ -891,7 +1028,7 @@
         setTimeout(() => { btn.textContent = "Make Their Bingo"; btn.style.opacity = ''; }, 1500);
         return;
       }
-      formValues = { name, occasion, relationship: rel, keywords, tone, memory };
+      formValues = { name, occasion, relationship: rel, keywords, tone, memory, giverName: 'Someone who loves you' };
       updateSteps(2);
       confetti({ particleCount: 20, spread: 40, origin: { y: 0.6 }, colors: ['#E8C87A', '#E09F8C'], startVelocity: 25 });
     }
@@ -1070,7 +1207,7 @@
         cells,
         poem: tier !== 'basic' ? (poems[rel] || poems.general) : null,
         memory: tier === 'deluxe' ? (memory || memories[rel] || memories.general) : null,
-        tier, features: features[tier] || features.basic, name, theme: selectedTheme,
+        tier, features: features[tier] || features.basic, name, theme: selectedTheme, giverName: values.giverName || 'Someone who loves you',
         gifts: tier === 'basic' ? [] : tier === 'premium' ? selectedGifts.filter(g => g === 'flower' || g === 'heart') : selectedGifts
       };
     }
@@ -1112,7 +1249,7 @@
           cells,
           poem: data.poem || null, memory: data.memory || null,
           tier: selectedTier, features: fm[selectedTier] || fm.basic,
-          name: formValues.name, theme: selectedTheme,
+          name: formValues.name, theme: selectedTheme, giverName: formValues.giverName || 'Someone who loves you',
           gifts: selectedTier === 'basic' ? [] : selectedTier === 'premium' ? selectedGifts.filter(g => g === 'flower' || g === 'heart') : selectedGifts
         };
       } catch (e) {
@@ -1403,6 +1540,7 @@
           document.getElementById('memoryText').textContent = cardData.memory;
         }
         document.getElementById('downloadBtn').style.display = cardData.features.download ? '' : 'none';
+        document.getElementById('keepsakeBtn').style.display = '';
 
         // Unlock all remaining gifts
         const gifts = cardData.gifts || [];
@@ -1468,11 +1606,14 @@
 
     function downloadCard() {
       if (!cardData || !cardData.features.download) return;
-      html2canvas(document.getElementById('bingoGrid'), {
-        backgroundColor: '#1E121C', scale: 2, useCORS: true
+      const el = document.getElementById('keepsakeSection').style.display === 'block'
+        ? document.getElementById('keepsakeScroll')
+        : document.getElementById('bingoGrid');
+      html2canvas(el, {
+        backgroundColor: '#281D25', scale: 2, useCORS: true
       }).then(canvas => {
         const link = document.createElement('a');
-        link.download = cardData.name + '_BingoCard.png';
+        link.download = cardData.name + '_PraiseBingo.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
       });
@@ -1490,10 +1631,112 @@
       document.getElementById('memorySection').style.display = 'none';
       document.getElementById('gameOverOverlay').style.display = 'none';
       document.getElementById('downloadBtn').style.display = 'none';
+      document.getElementById('keepsakeBtn').style.display = 'none';
+      document.getElementById('keepsakeSection').style.display = 'none';
+      document.getElementById('cardContent').style.display = 'block';
       window.history.replaceState(null, '', window.location.pathname);
       updateSteps(1);
       updateLivePreview();
       applyTheme(selectedTheme);
+    }
+
+    // ========================
+    // UNBOXING
+    // ========================
+    function showUnboxing() {
+      if (!cardData) return;
+      document.getElementById('unboxingGiver').textContent = cardData.giverName || 'Someone who loves you';
+      document.getElementById('unboxingName').textContent = cardData.name || '';
+      document.getElementById('unboxingOverlay').classList.add('open');
+      if (cardData.theme) { selectedTheme = cardData.theme; applyTheme(selectedTheme); }
+      document.getElementById('particles-canvas').style.zIndex = '0';
+    }
+
+    function openGift() {
+      const box = document.getElementById('giftBox');
+      box.classList.add('open');
+      confetti({ particleCount: 80, spread: 80, origin: { y: 0.6 }, colors: ['#E8C87A', '#E09F8C', '#FFF5EE'] });
+      setTimeout(() => confetti({ particleCount: 50, spread: 60, origin: { y: 0.4 }, colors: ['#E8C87A'] }), 300);
+      setTimeout(() => {
+        document.getElementById('unboxingOverlay').classList.remove('open');
+        updateSteps(3);
+        renderGame();
+        document.getElementById('particles-canvas').style.zIndex = '0';
+      }, 800);
+    }
+
+    // ========================
+    // KEEPSAKE
+    // ========================
+    function showKeepsake() {
+      if (!cardData) return;
+      document.getElementById('cardContent').style.display = 'none';
+      document.getElementById('keepsakeSection').style.display = 'block';
+
+      document.getElementById('keepsakeTitle').textContent = 'A Praise Bingo for ' + cardData.name;
+      document.getElementById('keepsakeSubtitle').textContent = 'made with love' + (cardData.occasion ? ' — ' + cardData.occasion : '');
+      document.getElementById('keepsakeSignature').textContent = '— From ' + (cardData.giverName || 'Someone who loves you');
+      document.getElementById('keepsakeOccasion').textContent = cardData.occasion || '';
+
+      const scroll = document.getElementById('keepsakeScroll');
+      scroll.innerHTML = '';
+
+      if (cardData.poem) {
+        const pDiv = document.createElement('div');
+        pDiv.className = 'keepsake-poem';
+        pDiv.innerHTML = '<div class="kp-label">A poem for you</div><div class="kp-text">' + cardData.poem.replace(/\n/g, '<br>') + '</div>';
+        scroll.appendChild(pDiv);
+      }
+
+      cardData.cells.forEach((cell, i) => {
+        if (cell.cat === 'free') return;
+        const div = document.createElement('div');
+        div.className = 'keepsake-item ki-' + cell.cat;
+        div.innerHTML = '<div class="ki-cat">' + (CAT_ICONS[cell.cat] || '') + ' ' + (CAT_NAMES[cell.cat] || '') + '</div><div class="ki-text">' + cell.text + '</div>';
+        scroll.appendChild(div);
+      });
+
+      if (cardData.memory) {
+        const mDiv = document.createElement('div');
+        mDiv.className = 'keepsake-memory';
+        mDiv.innerHTML = '<div class="km-label">Memory Lane</div><div class="km-text">' + cardData.memory + '</div>';
+        scroll.appendChild(mDiv);
+      }
+
+      setTimeout(() => initScrollGlow(), 100);
+    }
+
+    function initScrollGlow() {
+      const items = document.querySelectorAll('.keepsake-item');
+      if (items.length === 0) return;
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            items.forEach(i => i.classList.remove('reading'));
+            entry.target.classList.add('reading');
+          }
+        });
+      }, { threshold: 0.45, rootMargin: '-10% 0px -10% 0px' });
+      items.forEach(item => observer.observe(item));
+      items[0].classList.add('reading');
+    }
+
+    function showGameView() {
+      document.getElementById('keepsakeSection').style.display = 'none';
+      document.getElementById('cardContent').style.display = 'block';
+    }
+
+    function downloadKeepsake() {
+      const el = document.getElementById('keepsakeScroll');
+      if (!el) return;
+      html2canvas(el, {
+        backgroundColor: '#281D25', scale: 2, useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = (cardData ? cardData.name : 'Card') + '_PraiseBingo.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
     }
 
     // ========================
@@ -1512,8 +1755,7 @@
           };
           cardData.features = f[cardData.tier] || f.basic;
           if (cardData.theme) { selectedTheme = cardData.theme; applyTheme(selectedTheme); }
-          updateSteps(3);
-          renderGame();
+          showUnboxing();
         } catch (e) {}
       }
     })();
