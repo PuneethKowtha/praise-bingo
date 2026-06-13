@@ -710,7 +710,7 @@
 
     // Game state
     let gameCells = [];
-    let hearts = 3;
+    let hearts = 5;
     let score = 0;
     let currentDrawIdx = -1;
     let drawnIndices = [];
@@ -1059,7 +1059,7 @@
       updateSteps(3);
       document.getElementById('loadingSection').classList.add('active');
       document.getElementById('cardSection').classList.remove('active');
-      gameOver = false; bingoAchieved = false; hearts = 3; score = 0; currentDrawIdx = -1; drawnIndices = []; isFlipping = false;
+      gameOver = false; bingoAchieved = false; hearts = 5; score = 0; currentDrawIdx = -1; drawnIndices = []; isFlipping = false;
       gameCells = [];
 
       const bar = document.getElementById('loadingBar');
@@ -1190,7 +1190,7 @@
 
     function updateStatus() {
       document.getElementById('heartsDisplay').innerHTML =
-        Array.from({ length: 3 }, (_, i) => '<span' + (i >= hearts ? ' class="lost"' : '') + '>❤️</span>').join('');
+        Array.from({ length: 5 }, (_, i) => '<span' + (i >= hearts ? ' class="lost"' : '') + '>❤️</span>').join('');
       document.getElementById('scoreDisplay').textContent = score;
     }
 
@@ -1283,7 +1283,7 @@
           el.classList.add('shake');
           setTimeout(() => el.classList.remove('shake'), 400);
 
-          // Flip back after showing briefly
+          // Flip back after showing briefly (1.2s to read)
           setTimeout(() => {
             el.classList.remove('flipped');
             updateStatus();
@@ -1296,12 +1296,12 @@
               const correctEl = document.getElementById('cell-' + currentDrawIdx);
               if (correctEl) {
                 correctEl.classList.add('flipped');
-                setTimeout(() => { correctEl.classList.remove('flipped'); isFlipping = false; }, 600);
+                setTimeout(() => { correctEl.classList.remove('flipped'); isFlipping = false; }, 1200);
               } else {
                 isFlipping = false;
               }
             }
-          }, 600);
+          }, 1200);
         }
       }, 300);
     }
@@ -1379,7 +1379,7 @@
 
     function restartGame() {
       gameOver = false;
-      hearts = 3;
+      hearts = 5;
       score = 0;
       currentDrawIdx = -1;
       drawnIndices = [];
@@ -1437,7 +1437,7 @@
     }
 
     function resetAll() {
-      cardData = null; selectedTier = null; hearts = 3; score = 0;
+      cardData = null; selectedTier = null; hearts = 5; score = 0;
       gameCells = []; drawnIndices = []; gameOver = false; bingoAchieved = false; isFlipping = false;
       document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
       document.getElementById('payButton').disabled = true;
