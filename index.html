@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Praise Bingo — The most fun way to say "I love you"</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -85,12 +82,12 @@
           <div class="grid md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">Recipient's Name *</label>
-              <input type="text" name="name" required placeholder="e.g. Priya"
+              <input type="text" name="name" id="nameInput" required placeholder="e.g. Priya"
                 class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition">
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">Occasion *</label>
-              <select name="occasion" required
+              <select name="occasion" id="occasionSelect" required
                 class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition bg-white">
                 <option value="">Select occasion</option>
                 <option value="Birthday">Birthday</option>
@@ -105,7 +102,7 @@
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">Relationship *</label>
-              <select name="relationship" required
+              <select name="relationship" id="relationshipSelect" required
                 class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition bg-white">
                 <option value="">Select relationship</option>
                 <option value="Partner">Partner / Spouse</option>
@@ -122,7 +119,7 @@
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">Tone *</label>
-              <select name="tone" required
+              <select name="tone" id="toneSelect" required
                 class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition bg-white">
                 <option value="Heartfelt">Heartfelt</option>
                 <option value="Funny">Funny & Playful</option>
@@ -134,10 +131,10 @@
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Their interests / qualities</label>
-            <textarea name="keywords" rows="2" placeholder="e.g. loves coffee, dog mom, great cook, always makes me laugh"
+            <textarea name="keywords" id="keywordsInput" rows="2" placeholder="e.g. loves coffee, dog mom, great cook, always makes me laugh"
               class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none transition"></textarea>
           </div>
-          <button type="submit"
+          <button type="button" id="generateBtn"
             class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-4 px-6 rounded-xl text-lg hover:from-pink-600 hover:to-purple-600 transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
             Generate My Bingo Card →
           </button>
@@ -250,6 +247,9 @@
     </footer>
   </div>
 
+  <script defer src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
     // === CONFIG ===
     // REPLACE_RAZORPAY_KEY — swap with your live Razorpay Key ID before going live
@@ -268,30 +268,41 @@
       currentStep = step;
       for (let i = 1; i <= 3; i++) {
         const dot = document.getElementById('step' + i);
+        if (!dot) return;
         dot.className = 'step-dot ' + (i < step ? 'done' : i === step ? 'active' : 'pending');
       }
-      document.getElementById('line1').className = 'step-line ' + (step > 1 ? 'done' : '');
-      document.getElementById('line2').className = 'step-line ' + (step > 2 ? 'done' : '');
+      const l1 = document.getElementById('line1');
+      const l2 = document.getElementById('line2');
+      if (l1) l1.className = 'step-line ' + (step > 1 ? 'done' : '');
+      if (l2) l2.className = 'step-line ' + (step > 2 ? 'done' : '');
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      if (step === 1) document.getElementById('formSection').classList.add('active');
-      else if (step === 2) document.getElementById('paymentSection').classList.add('active');
-      else if (step === 3) document.getElementById('cardSection').classList.add('active');
+      if (step === 1) document.getElementById('formSection')?.classList.add('active');
+      else if (step === 2) document.getElementById('paymentSection')?.classList.add('active');
+      else if (step === 3) document.getElementById('cardSection')?.classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // === FORM SUBMISSION ===
-    document.getElementById('bingoForm').onsubmit = function (e) {
-      e.preventDefault();
-      const fd = new FormData(this);
-      formValues = {
-        name: fd.get('name').trim(),
-        occasion: fd.get('occasion'),
-        relationship: fd.get('relationship'),
-        keywords: fd.get('keywords').trim(),
-        tone: fd.get('tone')
-      };
+    function handleFormSubmit() {
+      const name = document.getElementById('nameInput').value.trim();
+      const occasion = document.getElementById('occasionSelect').value;
+      const relationship = document.getElementById('relationshipSelect').value;
+      const keywords = document.getElementById('keywordsInput').value.trim();
+      const tone = document.getElementById('toneSelect').value;
+
+      if (!name || !occasion || !relationship || !tone) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      formValues = { name, occasion, relationship, keywords, tone };
       updateSteps(2);
-    };
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const btn = document.getElementById('generateBtn');
+      if (btn) btn.addEventListener('click', handleFormSubmit);
+    });
 
     // === TIER SELECTION ===
     function selectTier(tier) {
