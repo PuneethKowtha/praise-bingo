@@ -557,7 +557,7 @@
         <div id="cardContent">
           <div class="game-intro">
             <h2 id="cardTitle">Their Bingo Card</h2>
-            <p id="cardSubtitle">Find each compliment as it's drawn. 3 hearts. Match 'em all.</p>
+            <p id="cardSubtitle">Find each compliment as it's drawn. 5 hearts. Match 'em all.</p>
           </div>
 
           <!-- Draw Area -->
@@ -978,51 +978,73 @@
     // ========================
     // MOCK DATA GENERATOR
     // ========================
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const PATTERNS = [
+      { pat: "{name}'s heart is {kw}", cat: 'heart' },
+      { pat: "how {name} shows {kw}", cat: 'heart' },
+      { pat: "the {kw} in {name}'s heart", cat: 'heart' },
+      { pat: "{name} cares with such {kw}", cat: 'heart' },
+      { pat: "the way {name} loves {kw}", cat: 'heart' },
+      { pat: "{name}'s {kw} spirit", cat: 'heart' },
+      { pat: "{name}'s smile is {kw}", cat: 'light' },
+      { pat: "{name} lights up with {kw}", cat: 'light' },
+      { pat: "the {kw} {name} radiates", cat: 'light' },
+      { pat: "{name} brings {kw} everywhere", cat: 'light' },
+      { pat: "how brightly {name} shines {kw}", cat: 'light' },
+      { pat: "{name}'s laughter is pure {kw}", cat: 'light' },
+      { pat: "{name} is so {kw}", cat: 'strength' },
+      { pat: "the strength in {name}'s {kw}", cat: 'strength' },
+      { pat: "{name} handles everything with {kw}", cat: 'strength' },
+      { pat: "how {name} stays {kw}", cat: 'strength' },
+      { pat: "{name}'s quiet {kw}", cat: 'strength' },
+      { pat: "i admire {name}'s {kw}", cat: 'strength' },
+      { pat: "{name} finds joy in {kw}", cat: 'joy' },
+      { pat: "the {kw} {name} brings", cat: 'joy' },
+      { pat: "{name} makes everything {kw}", cat: 'joy' },
+      { pat: "how {name} celebrates {kw}", cat: 'joy' },
+      { pat: "{name}'s {kw} is contagious", cat: 'joy' },
+      { pat: "every moment with {name} is {kw}", cat: 'joy' },
+      { pat: "{name}'s kindness is {kw}", cat: 'kind' },
+      { pat: "how gently {name} {kw}", cat: 'kind' },
+      { pat: "{name} remembers every {kw}", cat: 'kind' },
+      { pat: "the thoughtfulness in {name}'s {kw}", cat: 'kind' },
+      { pat: "{name} makes everyone feel {kw}", cat: 'kind' },
+      { pat: "{name}'s {kw} knows no bounds", cat: 'kind' },
+    ];
+
+    const DEFAULT_KWS = ['wonderful','beautiful','special','amazing','incredible','thoughtful','kind','bright','gentle','warm','strong','loving','pure','true','deep','soft','golden','quiet','brave','wise','honest','playful','graceful','radiant','tender','hopeful','steady','free','bright','sweet','cozy','calm','humble','patient'];
+
     function generateMockData(values, tier) {
       const { name, occasion, relationship, keywords, tone, memory } = values;
       const rel = relationship || 'general';
-      const keyList = keywords ? keywords.toLowerCase().split(',').map(s => s.trim()).filter(Boolean) : [];
+      const keyList = keywords ? keywords.toLowerCase().split(/[,;]/).map(s => s.trim()).filter(Boolean) : [];
 
-      const templates = {
-        partner: {
-          heart: ["the way {name} listens", "{name}'s heart, so gentle", "how {name} cares, deeply", "the kindness in {name}'s eyes", "that look {name} gives me"],
-          light: ["{name}'s smile, like sunrise", "{name} lights every room", "the warmth {name} carries", "how {name} makes dark days bright", "{name}'s laugh, pure gold"],
-          strength: ["how strong {name} is", "{name} never gives up", "the quiet grace of {name}", "{name} stands tall, always", "the courage in {name}'s heart"],
-          joy: ["the joy {name} brings", "{name} makes everything fun", "how {name} finds the magic", "{name}'s delight is contagious", "every moment with {name}"],
-          kind: ["{name}'s kindness, endless", "how {name} makes time", "the little things {name} does", "{name} remembers everything", "{name} gives without asking"]
-        },
-        friend: {
-          heart: ["{name}'s loyalty, unwavering", "how {name} shows up", "{name} has the biggest heart", "the way {name} supports me", "{name} is always there"],
-          light: ["{name}'s energy lifts me", "how {name} makes me laugh", "{name} is sunshine in human form", "the fun we have with {name}", "{name} brightens my worst days"],
-          strength: ["{name} is so resilient", "how {name} handles everything", "I admire {name}'s strength", "{name} is tougher than they know", "the grace in {name}'s struggle"],
-          joy: ["every adventure with {name}", "our inside jokes forever", "{name} knows how to live", "the spontaneous fun with {name}", "{name} brings the best vibes"],
-          kind: ["{name} is so thoughtful", "how {name} remembers details", "{name} makes people feel seen", "the generosity of {name}", "{name} is everyone's safe space"]
-        },
-        general: {
-          heart: ["{name}'s warmth reaches everyone", "the heart of {name} is rare", "how {name} cares so genuinely", "{name} is pure of heart", "the love {name} shares"],
-          light: ["{name} brings so much light", "how {name} inspires others", "the positivity {name} radiates", "{name} makes the world brighter", "the energy {name} brings"],
-          strength: ["{name} is incredibly strong", "how {name} overcomes", "I see the strength in {name}", "{name} handles it all", "the determination of {name}"],
-          joy: ["{name} finds joy everywhere", "how {name} makes others happy", "the laughter {name} shares", "{name} is a gift to know", "the happiness {name} spreads"],
-          kind: ["the kindness of {name}", "how {name} helps without asking", "{name} is so generous", "the thoughtfulness of {name}", "{name} makes everyone feel special"]
-        }
-      };
+      let kwPool = [...DEFAULT_KWS];
+      keyList.forEach(k => { if (!kwPool.includes(k)) kwPool.unshift(k); });
+      shuffle(kwPool);
 
-      const tpls = templates[rel] || templates.general;
+      let patterns = [...PATTERNS];
+      shuffle(patterns);
+      while (patterns.length < 24) patterns.push(...PATTERNS);
+      shuffle(patterns);
+
       const cells = [];
+      const usedTexts = new Set();
       for (let i = 0; i < 25; i++) {
-        if (i === 12) {
-          cells.push({ text: '✦ free space ✦', cat: 'free' });
-        } else {
-          const cat = CATS[i % 5];
-          const pool = tpls[cat] || tpls.heart;
-          let t = pool[i % pool.length].replace(/{name}/g, name);
-          if (keyList.length > 0) {
-            const kw = keyList[i % keyList.length];
-            const kwIdx = i % 3;
-            if (kwIdx === 0) t = t.replace(/ (the |how |that )/, ' $1' + kw + ' ');
-          }
-          cells.push({ text: t, cat: cat });
-        }
+        if (i === 12) { cells.push({ text: '✦ free space ✦', cat: 'free' }); continue; }
+        const p = patterns[i];
+        const kw = kwPool[i % kwPool.length];
+        let t = p.pat.replace(/{name}/g, name).replace(/{kw}/g, kw);
+        if (usedTexts.has(t)) t += ' ' + kw;
+        usedTexts.add(t);
+        cells.push({ text: t, cat: p.cat });
       }
 
       const poems = {
@@ -1115,7 +1137,7 @@
       gameCells = cardData.cells.map(c => ({ ...c, flipped: c.cat === 'free', matched: c.cat === 'free' }));
 
       document.getElementById('cardTitle').textContent = cardData.name + "'s Bingo Card";
-      document.getElementById('cardSubtitle').textContent = 'Find each compliment as it\'s drawn. 3 hearts. Match \'em all.';
+      document.getElementById('cardSubtitle').textContent = 'Find each compliment as it\'s drawn. 5 hearts. Match \'em all.';
 
       const grid = document.getElementById('bingoGrid');
       grid.innerHTML = '';
@@ -1248,8 +1270,10 @@
 
       // Check if it matches
       setTimeout(() => {
-        if (idx === currentDrawIdx) {
+        if (cell.text === gameCells[currentDrawIdx].text) {
           // CORRECT!
+          // If multiple cells had this text, only the first one found counts
+          if (cell.flipped) { isFlipping = false; return; }
           cell.flipped = true;
           cell.matched = true;
           score++;
