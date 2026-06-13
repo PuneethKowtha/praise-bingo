@@ -235,6 +235,8 @@
     @keyframes cellShake { 0%,100% { transform: rotateY(0deg); } 25% { transform: rotateY(0deg) translateX(-3px); } 75% { transform: rotateY(0deg) translateX(3px); } }
     .flip-cell.correct .inner { animation: cellCorrect 0.5s cubic-bezier(0.34,1.56,0.64,1); }
     @keyframes cellCorrect { 0% { transform: rotateY(180deg); } 50% { transform: rotateY(180deg) scale(1.15); } 100% { transform: rotateY(180deg) scale(1); } }
+    .flip-cell.hint-active .front { animation: hintGlow 1.4s ease-in-out infinite; }
+    @keyframes hintGlow { 0%,100% { box-shadow: 0 0 4px rgba(232,200,122,0.1); border-color: rgba(232,200,122,0.2); } 50% { box-shadow: 0 0 16px rgba(232,200,122,0.3), 0 0 32px rgba(232,200,122,0.08); border-color: rgba(232,200,122,0.4); } }
 
     .flip-cell .front, .flip-cell .back {
       position: absolute; inset: 0; border-radius: 10px;
@@ -1216,6 +1218,19 @@
       document.getElementById('scoreDisplay').textContent = score;
     }
 
+    function updateHints() {
+      document.querySelectorAll('.flip-cell.hint-active').forEach(el => el.classList.remove('hint-active'));
+      if (currentDrawIdx === -1) return;
+      const cat = gameCells[currentDrawIdx].cat;
+      if (cat === 'free') return;
+      gameCells.forEach((c, i) => {
+        if (!c.flipped && c.cat === cat) {
+          const el = document.getElementById('cell-' + i);
+          if (el) el.classList.add('hint-active');
+        }
+      });
+    }
+
     // ========================
     // GAME ENGINE
     // ========================
@@ -1251,6 +1266,7 @@
         const cIdx = CATS.indexOf(pick.cat);
         if (legItems[cIdx]) legItems[cIdx].style.opacity = '1';
       }
+      updateHints();
     }
 
     function handleCellClick(idx) {
@@ -1272,11 +1288,10 @@
       setTimeout(() => {
         if (cell.text === gameCells[currentDrawIdx].text) {
           // CORRECT!
-          // If multiple cells had this text, only the first one found counts
-          if (cell.flipped) { isFlipping = false; return; }
           cell.flipped = true;
           cell.matched = true;
           score++;
+          if (hearts < 5) hearts++;
           el.classList.add('correct');
 
           // Mark as permanently open
@@ -1311,16 +1326,18 @@
           setTimeout(() => {
             el.classList.remove('flipped');
             updateStatus();
+            updateHints();
 
             if (hearts <= 0) {
               gameOver = true;
               document.getElementById('gameOverOverlay').style.display = 'block';
+              updateHints();
             } else {
               // Show a hint: flash the correct cell
               const correctEl = document.getElementById('cell-' + currentDrawIdx);
               if (correctEl) {
                 correctEl.classList.add('flipped');
-                setTimeout(() => { correctEl.classList.remove('flipped'); isFlipping = false; }, 1200);
+                setTimeout(() => { correctEl.classList.remove('flipped'); isFlipping = false; updateHints(); }, 800);
               } else {
                 isFlipping = false;
               }
@@ -1432,6 +1449,7 @@
       });
 
       document.querySelectorAll('.gift-icon').forEach(el => el.classList.remove('unlocked', 'pulse-gift'));
+      document.querySelectorAll('.flip-cell.hint-active').forEach(el => el.classList.remove('hint-active'));
 
       updateStatus();
       setTimeout(() => drawNext(), 400);
